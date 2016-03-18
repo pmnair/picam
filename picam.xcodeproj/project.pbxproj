@@ -7,7 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AC282AB51C9BB93000420672 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = AC282AB41C9BB93000420672 /* main.c */; };
+		AC282AC31C9BB95A00420672 /* camera.c in Sources */ = {isa = PBXBuildFile; fileRef = AC282ABB1C9BB95A00420672 /* camera.c */; };
+		AC282AC41C9BB95A00420672 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = AC282ABD1C9BB95A00420672 /* common.c */; };
+		AC282AC51C9BB95A00420672 /* frame_helper.c in Sources */ = {isa = PBXBuildFile; fileRef = AC282ABF1C9BB95A00420672 /* frame_helper.c */; };
+		AC282AC61C9BB95A00420672 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = AC282AC11C9BB95A00420672 /* main.c */; };
+		AC282AC71C9BB95A00420672 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = AC282AC21C9BB95A00420672 /* Makefile */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,8 +27,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AC282AB11C9BB93000420672 /* picam */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = picam; sourceTree = BUILT_PRODUCTS_DIR; };
-		AC282AB41C9BB93000420672 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		AC282AB11C9BB93000420672 /* picam */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = picam; path = /Users/praveen/Dropbox/raspi/picam/build/Debug/picam; sourceTree = "<absolute>"; };
+		AC282ABB1C9BB95A00420672 /* camera.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = camera.c; sourceTree = "<group>"; };
+		AC282ABC1C9BB95A00420672 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
+		AC282ABD1C9BB95A00420672 /* common.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
+		AC282ABE1C9BB95A00420672 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		AC282ABF1C9BB95A00420672 /* frame_helper.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = frame_helper.c; sourceTree = "<group>"; };
+		AC282AC01C9BB95A00420672 /* frame_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = frame_helper.h; sourceTree = "<group>"; };
+		AC282AC11C9BB95A00420672 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		AC282AC21C9BB95A00420672 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,25 +52,15 @@
 		AC282AA81C9BB93000420672 = {
 			isa = PBXGroup;
 			children = (
-				AC282AB31C9BB93000420672 /* picam */,
-				AC282AB21C9BB93000420672 /* Products */,
+				AC282ABB1C9BB95A00420672 /* camera.c */,
+				AC282ABC1C9BB95A00420672 /* camera.h */,
+				AC282ABD1C9BB95A00420672 /* common.c */,
+				AC282ABE1C9BB95A00420672 /* common.h */,
+				AC282ABF1C9BB95A00420672 /* frame_helper.c */,
+				AC282AC01C9BB95A00420672 /* frame_helper.h */,
+				AC282AC11C9BB95A00420672 /* main.c */,
+				AC282AC21C9BB95A00420672 /* Makefile */,
 			);
-			sourceTree = "<group>";
-		};
-		AC282AB21C9BB93000420672 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				AC282AB11C9BB93000420672 /* picam */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		AC282AB31C9BB93000420672 /* picam */ = {
-			isa = PBXGroup;
-			children = (
-				AC282AB41C9BB93000420672 /* main.c */,
-			);
-			path = picam;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -104,7 +105,7 @@
 				en,
 			);
 			mainGroup = AC282AA81C9BB93000420672;
-			productRefGroup = AC282AB21C9BB93000420672 /* Products */;
+			productRefGroup = AC282AA81C9BB93000420672;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -118,7 +119,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC282AB51C9BB93000420672 /* main.c in Sources */,
+				AC282AC71C9BB95A00420672 /* Makefile in Sources */,
+				AC282AC61C9BB95A00420672 /* main.c in Sources */,
+				AC282AC51C9BB95A00420672 /* frame_helper.c in Sources */,
+				AC282AC41C9BB95A00420672 /* common.c in Sources */,
+				AC282AC31C9BB95A00420672 /* camera.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
