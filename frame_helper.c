@@ -54,14 +54,14 @@ int analyze_motion_frame(struct frame_helper *helper, int frame_idx)
 	return rc;
 }
 
-int write_data_frames(struct frame_helper *helper)
+int write_data_frames(struct frame_helper *helper, int frame_idx)
 {
 	struct frame_helper_job job;
 	int rc;
 
 	job.mtype = 1;
 	job.flags = FLAG_WRITE_DATA_FRAMES;
-	job.frame_idx = 0;
+	job.frame_idx = frame_idx;
 
 	rc = msgsnd(helper->qid, &job, sizeof(struct frame_helper_job), 0);
 	if (-1 == rc) {
@@ -117,7 +117,7 @@ frame_helper_fn(void *arg)
 		if ((job.flags == FLAG_WRITE_DATA_FRAMES) &&
 				(get_picam_state(ctx) == PICAM_RECORDING))
 		{
-			h264_write_frame(ctx, 0);
+			h264_write_frame(ctx, job.frame_idx);
 			if ((ctx->rec_start + ctx->nsec_cap_len) < time(NULL)) {
 				LOG_INF("STOP recording now");
 				set_picam_state(ctx, PICAM_WAITING);
@@ -132,7 +132,7 @@ frame_helper_fn(void *arg)
 		{
 			if (get_picam_state(ctx) == PICAM_WAITING) {
 				LOG_INF("Motion detected in frame %d; Start Recording", job.frame_idx);
-				h264_write_frame(ctx, 1);
+				h264_write_frames(ctx);
 				ctx->rec_start = time(NULL);
 				set_picam_state(ctx, PICAM_RECORDING);
 			}

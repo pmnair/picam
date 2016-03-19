@@ -27,10 +27,11 @@ camera_control_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 	mmal_buffer_header_release(buffer);
 }
 
-void
+int
 h264_save_frame(struct picam_ctx *ctx, MMAL_BUFFER_HEADER_T *buffer)
 {
 	struct picam_frame *frame = ctx->frame_buffers.frames[ctx->frame_buffers.curr];
+	int frame_idx;
 
 	pthread_mutex_lock(&ctx->frame_buffers.lock);
 
@@ -44,7 +45,9 @@ h264_save_frame(struct picam_ctx *ctx, MMAL_BUFFER_HEADER_T *buffer)
 	LOG_VDBG("curr frame = %d", ctx->frame_buffers.curr);
 	ctx->frame_buffers.last = ctx->frame_buffers.curr;
 	ctx->frame_buffers.curr = (ctx->frame_buffers.curr+1)%ctx->frame_buffers.nalloc;
+	frame_idx = ctx->frame_buffers.last;
 	pthread_mutex_unlock(&ctx->frame_buffers.lock);
+	return frame_idx;
 }
 
 void
@@ -85,6 +88,7 @@ h264_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 		}
 	}
 	else {
+		int frame_idx;
 		/* data contains key frame; this is received once every second or so */
 		if (buffer->flags & MMAL_BUFFER_HEADER_FLAG_KEYFRAME) {
 			LOG_VDBG("h264 key frame length(%d)", buffer->length);
@@ -100,8 +104,8 @@ h264_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 		fwrite(buffer->data, 1, buffer->length, ctx->fp);
 		mmal_buffer_header_mem_unlock(buffer);
 #else
-		h264_save_frame(ctx, buffer);
-		write_data_frames(&ctx->helper);
+		frame_idx = h264_save_frame(ctx, buffer);
+		write_data_frames(&ctx->helper, frame_idx);
 #endif
 	}
 

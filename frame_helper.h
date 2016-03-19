@@ -49,6 +49,6 @@ int allocate_motion_map(struct picam_ctx *ctx);
 
 int analyze_motion_frame(struct frame_helper *helper, int frame_idx);
 
-int write_data_frames(struct frame_helper *helper);
+int write_data_frames(struct frame_helper *helper, int frame_idx);
 
 #endif /* frame_helper_h */

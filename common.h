@@ -139,6 +139,9 @@ int
 open_next_file(struct picam_ctx *ctx);
 
 void
-h264_write_frame(struct picam_ctx *ctx, int wr_backlog);
+h264_write_frames(struct picam_ctx *ctx);
+
+void
+h264_write_frame(struct picam_ctx *ctx, int frame_idx);
 
 #endif /* common_h */
