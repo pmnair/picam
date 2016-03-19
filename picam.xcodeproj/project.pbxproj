@@ -12,6 +12,7 @@
 		AC282AC51C9BB95A00420672 /* frame_helper.c in Sources */ = {isa = PBXBuildFile; fileRef = AC282ABF1C9BB95A00420672 /* frame_helper.c */; };
 		AC282AC61C9BB95A00420672 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = AC282AC11C9BB95A00420672 /* main.c */; };
 		AC282AC71C9BB95A00420672 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = AC282AC21C9BB95A00420672 /* Makefile */; };
+		AC282ACB1C9C47D800420672 /* converter.c in Sources */ = {isa = PBXBuildFile; fileRef = AC282ACA1C9C47D800420672 /* converter.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,7 +28,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AC282AB11C9BB93000420672 /* picam */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = picam; path = /Users/praveen/Dropbox/raspi/picam/build/Debug/picam; sourceTree = "<absolute>"; };
 		AC282ABB1C9BB95A00420672 /* camera.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = camera.c; sourceTree = "<group>"; };
 		AC282ABC1C9BB95A00420672 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
 		AC282ABD1C9BB95A00420672 /* common.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
@@ -36,6 +36,9 @@
 		AC282AC01C9BB95A00420672 /* frame_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = frame_helper.h; sourceTree = "<group>"; };
 		AC282AC11C9BB95A00420672 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		AC282AC21C9BB95A00420672 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		AC282AC81C9BB9E000420672 /* picam */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = picam; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC282AC91C9C479F00420672 /* converter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = converter.h; sourceTree = "<group>"; };
+		AC282ACA1C9C47D800420672 /* converter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = converter.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +55,8 @@
 		AC282AA81C9BB93000420672 = {
 			isa = PBXGroup;
 			children = (
+				AC282ACA1C9C47D800420672 /* converter.c */,
+				AC282AC91C9C479F00420672 /* converter.h */,
 				AC282ABB1C9BB95A00420672 /* camera.c */,
 				AC282ABC1C9BB95A00420672 /* camera.h */,
 				AC282ABD1C9BB95A00420672 /* common.c */,
@@ -60,6 +65,7 @@
 				AC282AC01C9BB95A00420672 /* frame_helper.h */,
 				AC282AC11C9BB95A00420672 /* main.c */,
 				AC282AC21C9BB95A00420672 /* Makefile */,
+				AC282AC81C9BB9E000420672 /* picam */,
 			);
 			sourceTree = "<group>";
 		};
@@ -80,7 +86,7 @@
 			);
 			name = picam;
 			productName = picam;
-			productReference = AC282AB11C9BB93000420672 /* picam */;
+			productReference = AC282AC81C9BB9E000420672 /* picam */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -119,6 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC282ACB1C9C47D800420672 /* converter.c in Sources */,
 				AC282AC71C9BB95A00420672 /* Makefile in Sources */,
 				AC282AC61C9BB95A00420672 /* main.c in Sources */,
 				AC282AC51C9BB95A00420672 /* frame_helper.c in Sources */,
@@ -242,6 +249,7 @@
 				AC282ABA1C9BB93000420672 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

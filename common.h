@@ -18,6 +18,9 @@
 #include "interface/mmal/util/mmal_default_components.h"
 #include "interface/mmal/util/mmal_connection.h"
 
+#include "frame_helper.h"
+#include "converter.h"
+
 #define CAMERA_PREVIEW_PORT 0
 #define CAMERA_VIDEO_PORT   1
 #define CAMERA_STILL_PORT   2
@@ -42,43 +45,10 @@
 #define LOG_INF(fmt, ...)	printf("*INF* %s: "fmt"\n", __FUNCTION__, ## __VA_ARGS__ );
 #define LOG_ERROR(fmt, ...)	printf("*ERR* %s: "fmt"\n", __FUNCTION__, ## __VA_ARGS__ );
 
-#define MAX_MOTION_VECTS 5
-
 enum {
 	PICAM_WAITING         = 0,
 	PICAM_RECORDING_START = 1,
 	PICAM_RECORDING	      = 2,
-};
-
-struct picam_ctx;
-
-struct motion_macro_block {
-	int8_t x;
-	int8_t y;
-	uint16_t sad;
-};
-
-struct motion_map {
-	int rows;
-	int cols;
-	int nblocks;
-	uint16_t *buff;
-};
-
-struct motion_vector {
-	struct motion_macro_block *data;
-	int size;
-};
-
-struct motion_vector_arr {
-	struct motion_vector vect[MAX_MOTION_VECTS];
-	int curr;
-};
-
-struct frame_helper {
-	pthread_t tid;
-	int	  qid;
-	struct motion_map *map;
 };
 
 struct picam_frame {
@@ -135,7 +105,9 @@ struct picam_ctx {
 	time_t  rec_start;
 	int fname_idx;
 	char *fname;
-	
+
+	struct converter_ctx conv;
+
 	time_t  startup_time;
 	int     motion_check_delay;
 };

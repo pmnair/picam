@@ -10,7 +10,7 @@ MMAL_LIB ?= -L/opt/vc/lib -lbcm_host -lvcos -lmmal -lmmal_core -lmmal_util \
 FLAGS = -O2 -Wall $(MMAL_INCLUDE) $(INCLUDES)
 LIBS = $(MMAL_LIB) -lm -lpthread
 
-SRCS := main.c camera.c frame_helper.c common.c
+SRCS := main.c camera.c frame_helper.c common.c converter.c
 
 %.o:%.c
 	$(CC) $(CXXFLAGS) $(FLAGS) -c $< -o $@

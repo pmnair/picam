@@ -7,6 +7,7 @@
 //
 
 #include <stdio.h>
+#include <stdint.h>
 #include <time.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -96,7 +97,7 @@ analyse_motion_vector(struct picam_ctx *ctx, int frame_idx)
 }
 
 void *
-motion_analyzer_fn(void *arg)
+frame_helper_fn(void *arg)
 {
 	struct picam_ctx *ctx = (struct picam_ctx *)arg;
 	struct frame_helper *helper = &ctx->helper;
@@ -153,7 +154,7 @@ int init_frame_helper(struct picam_ctx *ctx)
 		goto out;
 	}
 
-	if (pthread_create(&helper->tid, NULL, motion_analyzer_fn, (void *)ctx)) {
+	if (pthread_create(&helper->tid, NULL, frame_helper_fn, (void *)ctx)) {
 		LOG_ERROR("pthread_create failed!\n");
 		goto out;
 	}
