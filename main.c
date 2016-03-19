@@ -63,6 +63,13 @@ int main(int argc, const char * argv[]) {
 		goto out;
 	}
 
+	/* initialize capture converter context */
+	rc = init_converter(&ctx);
+	if (rc) {
+		LOG_ERROR("Failed to initialize capture converter!");
+		goto out;
+	}
+
 	/* initialize motion analyzer */
 	rc = init_frame_helper(&ctx);
 	if (rc) {
@@ -98,9 +105,8 @@ int main(int argc, const char * argv[]) {
 	ctx.startup_time = time(NULL);
 	start_camera(&ctx.camera);
 	
-	/* BIG WAIT LOOP; To inifinity and beyond?? */
-	while(getchar() != 'q')
-		sleep(2);
+	/* run the capture converter loop */
+	run_capture_converter(&ctx);
 	
 cleanup:
 	destroy_comp(&ctx.encoder);

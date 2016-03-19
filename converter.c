@@ -10,8 +10,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <stdlib.h>
-#include <pthread.h>
-
+#include <string.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
@@ -36,10 +35,9 @@ struct converter_job {
 	char *fname;
 };
 
-void *
-capture_converter_fn(void *arg)
+void run_capture_converter(struct picam_ctx *ctx)
 {
-	struct converter_ctx *conv = (struct converter_ctx *)arg;
+	struct converter_ctx *conv = &ctx->conv;
 
 	LOG_INF("msgqid=%d", conv->qid);
 	while(1) {
@@ -55,7 +53,6 @@ capture_converter_fn(void *arg)
 	}
 out:
 	LOG_INF("Exiting now");
-	return NULL;
 }
 
 int init_converter(struct picam_ctx *ctx)
@@ -68,11 +65,6 @@ int init_converter(struct picam_ctx *ctx)
 		LOG_ERROR("msgq create failed!");
 		goto out;
 	}
-
-	if (pthread_create(&conv->tid, NULL, capture_converter_fn, (void *)conv)) {
-		LOG_ERROR("pthread_create failed!\n");
-		goto out;
-	}
 	LOG_INF("capture converter started q=%u pid=%d", conv->qid, getpid());
 
 	rc = 0;
@@ -83,7 +75,6 @@ out:
 void cleanup_converter(struct converter_ctx *conv)
 {
 	msgctl(conv->qid, IPC_RMID, NULL);
-	pthread_join(conv->tid, NULL);
 }
 
 int convert_capture(struct converter_ctx *conv, const char *name)
