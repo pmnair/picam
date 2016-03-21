@@ -20,6 +20,7 @@
 
 #include "frame_helper.h"
 #include "common.h"
+#include "converter.h"
 
 #define FLAG_ANALYZE_MOTION	0x0001
 #define FLAG_WRITE_DATA_FRAMES	0x0002
@@ -119,10 +120,11 @@ frame_helper_fn(void *arg)
 		{
 			h264_write_frame(ctx, job.frame_idx);
 			if ((ctx->rec_start + ctx->nsec_cap_len) < time(NULL)) {
+				char fname[1024];
 				LOG_INF("STOP recording now");
 				set_picam_state(ctx, PICAM_WAITING);
-				ctx->fname_idx++;
-				open_next_file(ctx);
+				open_next_file(ctx, fname, sizeof(fname));
+				convert_capture(&ctx->conv, fname);
 			}
 		}
 

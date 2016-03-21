@@ -17,13 +17,21 @@
 #include "common.h"
 #include "frame_helper.h"
 
+struct picam_ctx ctx;
+
+void signal_handler(int signum, siginfo_t *siginfo, void *secret)
+{
+	LOG_INF("Signal caught %d; cleaning up", signum);
+	cleanup_converter(&ctx.conv);
+}
+
 int main(int argc, const char * argv[]) {
 	int rc = 0;
-	struct picam_ctx ctx;
 	struct timespec end_tm;
 	int width = 1280;
 	int height = 720;
 	int fps = 30;
+	struct sigaction signal_act;
 	
 	if (argc < 2) {
 		printf("Usage: %s <fname>.h264\n", argv[0]);
@@ -37,18 +45,31 @@ int main(int argc, const char * argv[]) {
 	ctx.fps = fps;
 	ctx.nsec_pre_cap = 5;
 	ctx.nsec_cap_len = 5;
-	ctx.sensitivity = 10;
-	ctx.threshold = 5;
+	ctx.sensitivity = 50;
+	ctx.threshold = 10;
 	ctx.motion_check_delay = 3;
 	
 	init_picam_state(&ctx);
-	ctx.fname_idx = 1;
+	ctx.fname_idx = 0;
 	ctx.fname = strdup(argv[1]);
 	ctx.fp = NULL;
 	
 	ctx.camera.ctx = &ctx;
 	ctx.encoder.ctx = &ctx;
 	
+	sigemptyset(&signal_act.sa_mask);
+	signal_act.sa_flags = SA_ONESHOT;
+	signal_act.sa_sigaction = signal_handler;
+	sigaction(SIGHUP, &signal_act, NULL);    /* Hangup (POSIX).  */
+	sigaction(SIGINT, &signal_act, NULL);    /* Interrupt (ANSI).  */
+	sigaction(SIGQUIT, &signal_act, NULL);   /* Quit (POSIX).  */
+	sigaction(SIGILL, &signal_act, NULL);    /* Illegal instruction (ANSI).  */
+	sigaction(SIGABRT, &signal_act, NULL);   /* Abort (ANSI).  */
+	sigaction(SIGSEGV, &signal_act, NULL);   /* Segmentation violation (ANSI).  */
+	sigaction(SIGTERM, &signal_act, NULL);   /* Termination (ANSI).  */
+	sigaction(SIGPWR, &signal_act, NULL);    /* Power failure restart (System V).  */
+	sigaction(SIGSYS, &signal_act, NULL);    /* Bad system call.  */
+
 	/* allocate frame buffers */
 	rc = allocate_frame_buffers(&ctx);
 	if (rc) {
@@ -92,7 +113,7 @@ int main(int argc, const char * argv[]) {
 	}
 	
 	/* open file to record in */
-	open_next_file(&ctx);
+	open_next_file(&ctx, NULL, 0);
 	
 	/* connect video output port of camera to input of encoder */
 	connect_components(&ctx.camera, CAMERA_VIDEO_PORT, &ctx.encoder);

@@ -11,6 +11,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <linux/limits.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
@@ -35,6 +36,29 @@ struct converter_job {
 	char *fname;
 };
 
+void conv_h264_to_mp4(struct converter_ctx *conv, const char *fname)
+{
+	char h264_path[PATH_MAX];
+	char mp4_path[PATH_MAX];
+	char *cmd[] = {"/usr/bin/avconv",
+			"-loglevel", "quiet",
+			"-y", "-i", h264_path,
+			"-c", "copy",
+			mp4_path,
+			NULL};
+	pid_t child;
+
+	snprintf(h264_path, sizeof(h264_path), "./%s", fname);
+	snprintf(mp4_path, sizeof(mp4_path), "./%s.mp4", fname);
+
+	child = vfork();
+	if (child == 0) {
+		LOG_INF("Running converter for %s to %s", h264_path, mp4_path);
+		if (-1 == execv("/usr/bin/avconv", cmd))
+			LOG_ERROR("avconv failed?? errno=%d", errno);
+	}
+}
+
 void run_capture_converter(struct picam_ctx *ctx)
 {
 	struct converter_ctx *conv = &ctx->conv;
@@ -49,7 +73,9 @@ void run_capture_converter(struct picam_ctx *ctx)
 			perror("msgrcv");
 			goto out;
 		}
-		LOG_VDBG("msgrcv; sz=%d, %p, %s", sz, job.fname, job.fname);
+		LOG_INF("msgrcv; sz=%d, %p, %s", sz, job.fname, job.fname);
+		conv_h264_to_mp4(conv, job.fname);
+		free(job.fname);
 	}
 out:
 	LOG_INF("Exiting now");

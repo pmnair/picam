@@ -136,7 +136,7 @@ static inline void set_picam_state(struct picam_ctx *ctx, int state)
 }
 
 int
-open_next_file(struct picam_ctx *ctx);
+open_next_file(struct picam_ctx *ctx, char *last_fname, int len);
 
 void
 h264_write_frames(struct picam_ctx *ctx);

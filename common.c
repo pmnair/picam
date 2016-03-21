@@ -3,13 +3,17 @@
 #include "common.h"
 
 int
-open_next_file(struct picam_ctx *ctx)
+open_next_file(struct picam_ctx *ctx, char *last_fname, int len)
 {
 	char fname[1024];
 
-	if (ctx->fp)
+	if (ctx->fp) {
+		if (last_fname)
+			snprintf(last_fname, len, "%s-%d.h264", ctx->fname, ctx->fname_idx);
 		fclose(ctx->fp);
+	}
 
+	ctx->fname_idx++;
 	snprintf(fname, sizeof(fname), "%s-%d.h264", ctx->fname, ctx->fname_idx);
 	ctx->fp = fopen(fname, "w");
 
