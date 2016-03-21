@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <getopt.h>
 
 #include "bcm_host.h"
 
@@ -25,35 +26,109 @@ void signal_handler(int signum, siginfo_t *siginfo, void *secret)
 	cleanup_converter(&ctx.conv);
 }
 
-int main(int argc, const char * argv[]) {
+static char short_opts[] = "W:H:F:L:P:D:S:T:f:p:n:h";
+static const struct option long_opts[] = {
+	{ "width",       1, 0, 'W' },
+	{ "height",      1, 0, 'H' },
+	{ "fps",         1, 0, 'F' },
+	{ "length",      1, 0, 'L' },
+	{ "pre",         1, 0, 'P' },
+	{ "delay",       1, 0, 'D' },
+	{ "sensitivity", 1, 0, 'S' },
+	{ "threshold",   1, 0, 'T' },
+	{ "file",        1, 0, 'f' },
+	{ "path",        1, 0, 'p' },
+	{ "num",         1, 0, 'n' },
+	{ "help",        0, 0, 'h' },
+	{ NULL, 0, NULL, 0 }
+};
+
+static char *usage_txt =
+"Call: picam [options] -f|--file <filename> -p|--path <filepath>\n"
+"\n"
+"-f|--file <filename> : files will be named <filename>.h264.mp4"
+"-p|--path <filepath> : path to store the files in\n\n"
+"[OPTIONS]\n"
+"-W|--width <value>       : resolution width\n"
+"-H|--height <value>      : resolution height\n"
+"-F|--fps <value>         : frames per second\n"
+"-L|--length <value>      : length of each capture in seconds; default is 5 seconds\n"
+"-P|--pre <value>         : length of pre-capture in seconds; default is 5 seconds\n"
+"-D|--delay <value>       : startup delay in seconds; default is 5\n"
+"-S|--sensitivity <value> : sensitivity of motion detection; default is 50\n"
+"-T|--threshold <value>   : threshold for motion detection; default is 10\n"
+"-h|--help                : print this help\n\n";
+
+int main(int argc, char * const argv[])
+{
 	int rc = 0;
 	struct timespec end_tm;
-	int width = 1280;
-	int height = 720;
-	int fps = 30;
 	struct sigaction signal_act;
-	
-	if (argc < 2) {
-		printf("Usage: %s <fname>.h264\n", argv[0]);
-		exit(1);
-	}
-	bcm_host_init();
-	
+	int c;
+
 	memset(&ctx, 0, sizeof(struct picam_ctx));
-	ctx.width = width;
-	ctx.height = height;
-	ctx.fps = fps;
+	ctx.width = 1280;
+	ctx.height = 720;
+	ctx.fps = 30;
 	ctx.nsec_pre_cap = 5;
 	ctx.nsec_cap_len = 5;
 	ctx.sensitivity = 50;
 	ctx.threshold = 10;
-	ctx.motion_check_delay = 3;
+	ctx.motion_check_delay = 5;
 	
 	init_picam_state(&ctx);
 	ctx.fname_idx = 0;
-	ctx.fname = strdup(argv[1]);
+	ctx.fname = NULL;
+	ctx.path = NULL;
 	ctx.fp = NULL;
 	
+	while ((c = getopt_long(argc, argv, short_opts, long_opts, NULL)) != -1) {
+		switch( c ) {
+			case 'W':
+				ctx.width = atoi(optarg);
+				break;
+			case 'H':
+				ctx.height = atoi(optarg);
+				break;
+			case 'F':
+				ctx.fps = atoi(optarg);
+				break;
+			case 'L':
+				ctx.nsec_cap_len = atoi(optarg);
+				break;
+			case 'P':
+				ctx.nsec_pre_cap = atoi(optarg);
+				break;
+			case 'D':
+				ctx.motion_check_delay = atoi(optarg);
+				break;
+			case 'S':
+				ctx.sensitivity = atoi(optarg);
+				break;
+			case 'T':
+				ctx.threshold = atoi(optarg);
+				break;
+			case 'f':
+				ctx.fname = strdup(optarg);
+				break;
+			case 'p':
+				ctx.path = strdup(optarg);
+				break;
+			case '?':
+			default:
+				fprintf(stderr, "unknown option\n");
+				fprintf(stderr, "%s", usage_txt);
+				exit(1);
+		}
+	}
+
+	if (!ctx.fname || !ctx.path) {
+		fprintf(stderr, "unknown option\n");
+		fprintf(stderr, "%s", usage_txt);
+		exit(1);
+	}
+	bcm_host_init();
+
 	ctx.camera.ctx = &ctx;
 	ctx.encoder.ctx = &ctx;
 	
@@ -99,14 +174,14 @@ int main(int argc, const char * argv[]) {
 	}
 
 	/* create camera component */
-	rc = create_camera(&ctx.camera, width, height, fps);
+	rc = create_camera(&ctx.camera, ctx.width, ctx.height, ctx.fps);
 	if (rc) {
 		LOG_ERROR("Failed to create camera component!");
 		goto cleanup;
 	}
 	
 	/* create encoder component */
-	rc = create_encoder(&ctx.encoder, fps);
+	rc = create_encoder(&ctx.encoder, ctx.fps);
 	if (rc) {
 		LOG_ERROR("Failed to create encoder component!");
 		goto cleanup;

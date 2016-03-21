@@ -105,6 +105,7 @@ struct picam_ctx {
 	time_t  rec_start;
 	int fname_idx;
 	char *fname;
+	char *path;
 
 	struct converter_ctx conv;
 

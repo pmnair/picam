@@ -48,8 +48,8 @@ void conv_h264_to_mp4(struct converter_ctx *conv, const char *fname)
 			NULL};
 	pid_t child;
 
-	snprintf(h264_path, sizeof(h264_path), "./%s", fname);
-	snprintf(mp4_path, sizeof(mp4_path), "./%s.mp4", fname);
+	snprintf(h264_path, sizeof(h264_path), "%s/%s", conv->capture_path, fname);
+	snprintf(mp4_path, sizeof(mp4_path), "%s/%s.mp4", conv->capture_path, fname);
 
 	child = vfork();
 	if (child == 0) {
@@ -86,6 +86,7 @@ int init_converter(struct picam_ctx *ctx)
 	int rc = -1;
 	struct converter_ctx *conv = &ctx->conv;
 
+	snprintf(conv->capture_path, sizeof(conv->capture_path), "%s", ctx->path);
 	conv->qid = msgget(0xAABBCCAA, IPC_CREAT | IPC_EXCL | 0666);
 	if (conv->qid == -1) {
 		LOG_ERROR("msgq create failed!");

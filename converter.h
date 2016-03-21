@@ -15,7 +15,6 @@ struct picam_ctx;
 struct converter_ctx {
 	int	  qid;
 	char	  capture_path[PATH_MAX];
-	char	  storage_path[PATH_MAX];
 };
 
 int init_converter(struct picam_ctx *ctx);
