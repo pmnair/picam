@@ -36,7 +36,7 @@ struct converter_job {
 	char *fname;
 };
 
-void conv_h264_to_mp4(struct converter_ctx *conv, const char *fname)
+void conv_h264_to_mp4(struct picam_ctx *ctx, const char *fname)
 {
 	char h264_path[PATH_MAX];
 	char mp4_path[PATH_MAX];
@@ -48,8 +48,8 @@ void conv_h264_to_mp4(struct converter_ctx *conv, const char *fname)
 			NULL};
 	pid_t child;
 
-	snprintf(h264_path, sizeof(h264_path), "%s/%s", conv->capture_path, fname);
-	snprintf(mp4_path, sizeof(mp4_path), "%s/%s.mp4", conv->capture_path, fname);
+	snprintf(h264_path, sizeof(h264_path), "%s/%s", ctx->curr_dir, fname);
+	snprintf(mp4_path, sizeof(mp4_path), "%s/%s.mp4", ctx->curr_dir, fname);
 
 	child = vfork();
 	if (child == 0) {
@@ -73,8 +73,8 @@ void run_capture_converter(struct picam_ctx *ctx)
 			perror("msgrcv");
 			goto out;
 		}
-		LOG_INF("msgrcv; sz=%d, %p, %s", sz, job.fname, job.fname);
-		conv_h264_to_mp4(conv, job.fname);
+		LOG_DBG("msgrcv; sz=%d, %p, %s", sz, job.fname, job.fname);
+		conv_h264_to_mp4(ctx, job.fname);
 		free(job.fname);
 	}
 out:

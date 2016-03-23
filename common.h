@@ -10,6 +10,7 @@
 #define common_h
 
 #include <pthread.h>
+#include <syslog.h>
 
 #include "interface/vcos/vcos.h"
 #include "interface/mmal/mmal.h"
@@ -42,8 +43,10 @@
 #define LOG_VDBG(fmt, ...)
 #endif
 
-#define LOG_INF(fmt, ...)	printf("*INF* %s: "fmt"\n", __FUNCTION__, ## __VA_ARGS__ );
-#define LOG_ERROR(fmt, ...)	printf("*ERR* %s: "fmt"\n", __FUNCTION__, ## __VA_ARGS__ );
+#define LOG_INF(fmt, ...)	{ printf("*INF* %s: "fmt"\n", __FUNCTION__, ## __VA_ARGS__ ); \
+				  syslog(LOG_INFO, "*INF* %s: "fmt"\n", __FUNCTION__, ## __VA_ARGS__ ); }
+#define LOG_ERROR(fmt, ...)	{ printf("*ERR* %s: "fmt"\n", __FUNCTION__, ## __VA_ARGS__ ); \
+				  syslog(LOG_ERR, "*ERR* %s: "fmt"\n", __FUNCTION__, ## __VA_ARGS__ ); }
 
 enum {
 	PICAM_WAITING         = 0,
@@ -106,6 +109,7 @@ struct picam_ctx {
 	int fname_idx;
 	char *fname;
 	char *path;
+	char *curr_dir;
 
 	struct converter_ctx conv;
 

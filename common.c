@@ -1,20 +1,46 @@
 
 #include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include "common.h"
 
 int
 open_next_file(struct picam_ctx *ctx, char *last_fname, int len)
 {
 	char fname[1024];
+	char dir[1024];
+	struct tm now, *pnow;
+	time_t tm_now;
 
+	/* create directory based on todays date */
+	tm_now = time(NULL);
+	pnow = localtime_r(&tm_now, &now);
+	snprintf(dir, sizeof(dir), "%s/%02d-%02d-%04d",
+			ctx->path, pnow->tm_mon+1, pnow->tm_mday, pnow->tm_year+1900);
+	if (access(dir, 0) != 0) {
+		LOG_INF("creating dir %s", dir);
+		mkdir(dir, 0777);
+	}
+
+	/* save the current path if its new or different */
+	if (!ctx->curr_dir || (0 != strncmp(dir, ctx->curr_dir, strlen(dir)))) {
+		if (ctx->curr_dir)
+			free(ctx->curr_dir);
+		ctx->curr_dir = strdup(dir);
+	}
+
+	/* if we have a file open; close it */
 	if (ctx->fp) {
 		if (last_fname)
 			snprintf(last_fname, len, "%s-%d.h264", ctx->fname, ctx->fname_idx);
 		fclose(ctx->fp);
 	}
 
+	/* open the file with next index */
 	ctx->fname_idx++;
-	snprintf(fname, sizeof(fname), "%s-%d.h264", ctx->fname, ctx->fname_idx);
+	snprintf(fname, sizeof(fname), "%s/%s-%d.h264", ctx->curr_dir, ctx->fname, ctx->fname_idx);
+	LOG_INF("Opening file: %s", fname);
 	ctx->fp = fopen(fname, "w");
 
 	return (ctx->fp == NULL);

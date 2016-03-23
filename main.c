@@ -52,7 +52,7 @@ static char *usage_txt =
 "-W|--width <value>       : resolution width\n"
 "-H|--height <value>      : resolution height\n"
 "-F|--fps <value>         : frames per second\n"
-"-L|--length <value>      : length of each capture in seconds; default is 5 seconds\n"
+"-L|--length <value>      : length of each capture in seconds; default is 15 seconds\n"
 "-P|--pre <value>         : length of pre-capture in seconds; default is 5 seconds\n"
 "-D|--delay <value>       : startup delay in seconds; default is 5\n"
 "-S|--sensitivity <value> : sensitivity of motion detection; default is 50\n"
@@ -71,7 +71,7 @@ int main(int argc, char * const argv[])
 	ctx.height = 720;
 	ctx.fps = 30;
 	ctx.nsec_pre_cap = 5;
-	ctx.nsec_cap_len = 5;
+	ctx.nsec_cap_len = 15;
 	ctx.sensitivity = 50;
 	ctx.threshold = 10;
 	ctx.motion_check_delay = 5;
@@ -127,6 +127,8 @@ int main(int argc, char * const argv[])
 		fprintf(stderr, "%s", usage_txt);
 		exit(1);
 	}
+
+	openlog("picam", LOG_PID, LOG_DAEMON);
 	bcm_host_init();
 
 	ctx.camera.ctx = &ctx;
@@ -218,5 +220,6 @@ out:
 	if (ctx.fname) free(ctx.fname);
 	if (ctx.map.buff) free(ctx.map.buff);
 
+	closelog();
 	return rc;
 }
