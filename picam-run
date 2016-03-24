@@ -1,0 +1,7 @@
+#!/bin/sh
+
+while [ 1 ]
+do
+	ipcrm --queue-key 0xaabbccdd && ipcrm --queue-key 0xaabbccaa
+	/home/pi/picam/picam -p /media/data -L 30
+done
