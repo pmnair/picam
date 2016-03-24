@@ -48,8 +48,8 @@ void conv_h264_to_mp4(struct picam_ctx *ctx, const char *fname)
 			NULL};
 	pid_t child;
 
-	snprintf(h264_path, sizeof(h264_path), "%s/%s", ctx->curr_dir, fname);
-	snprintf(mp4_path, sizeof(mp4_path), "%s/%s.mp4", ctx->curr_dir, fname);
+	snprintf(h264_path, sizeof(h264_path), "%s", fname);
+	snprintf(mp4_path, sizeof(mp4_path), "%s.mp4", fname);
 
 	child = vfork();
 	if (child == 0) {

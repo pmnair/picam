@@ -44,10 +44,9 @@ static const struct option long_opts[] = {
 };
 
 static char *usage_txt =
-"Call: picam [options] -f|--file <filename> -p|--path <filepath>\n"
+"Call: picam [options] -p|--path <filepath>\n"
 "\n"
-"-f|--file <filename> : files will be named <filename>.h264.mp4"
-"-p|--path <filepath> : path to store the files in\n\n"
+"-p|--path <filepath>     : path to store the files in\n\n"
 "[OPTIONS]\n"
 "-W|--width <value>       : resolution width\n"
 "-H|--height <value>      : resolution height\n"
@@ -77,8 +76,6 @@ int main(int argc, char * const argv[])
 	ctx.motion_check_delay = 5;
 	
 	init_picam_state(&ctx);
-	ctx.fname_idx = 0;
-	ctx.fname = NULL;
 	ctx.path = NULL;
 	ctx.fp = NULL;
 	
@@ -108,9 +105,6 @@ int main(int argc, char * const argv[])
 			case 'T':
 				ctx.threshold = atoi(optarg);
 				break;
-			case 'f':
-				ctx.fname = strdup(optarg);
-				break;
 			case 'p':
 				ctx.path = strdup(optarg);
 				break;
@@ -122,7 +116,7 @@ int main(int argc, char * const argv[])
 		}
 	}
 
-	if (!ctx.fname || !ctx.path) {
+	if (!ctx.path) {
 		fprintf(stderr, "unknown option\n");
 		fprintf(stderr, "%s", usage_txt);
 		exit(1);
@@ -217,7 +211,6 @@ cleanup:
 	cleanup_frame_helper(&ctx.helper);
 out:
 	free_frame_buffers(&ctx);
-	if (ctx.fname) free(ctx.fname);
 	if (ctx.map.buff) free(ctx.map.buff);
 
 	closelog();

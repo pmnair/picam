@@ -8,7 +8,6 @@
 int
 open_next_file(struct picam_ctx *ctx, char *last_fname, int len)
 {
-	char fname[1024];
 	char dir[1024];
 	struct tm now, *pnow;
 	time_t tm_now;
@@ -33,15 +32,16 @@ open_next_file(struct picam_ctx *ctx, char *last_fname, int len)
 	/* if we have a file open; close it */
 	if (ctx->fp) {
 		if (last_fname)
-			snprintf(last_fname, len, "%s-%d.h264", ctx->fname, ctx->fname_idx);
+			snprintf(last_fname, len, "%s", ctx->fname);
 		fclose(ctx->fp);
 	}
 
 	/* open the file with next index */
-	ctx->fname_idx++;
-	snprintf(fname, sizeof(fname), "%s/%s-%d.h264", ctx->curr_dir, ctx->fname, ctx->fname_idx);
-	LOG_INF("Opening file: %s", fname);
-	ctx->fp = fopen(fname, "w");
+	snprintf(ctx->fname, PATH_MAX, "%s/mov-%02d%02d%02d.h264",
+				ctx->curr_dir, pnow->tm_hour,
+				pnow->tm_min, pnow->tm_sec);
+	LOG_INF("Opening file: %s", ctx->fname);
+	ctx->fp = fopen(ctx->fname, "w");
 
 	return (ctx->fp == NULL);
 }

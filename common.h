@@ -106,8 +106,7 @@ struct picam_ctx {
 	pthread_mutex_t lock;
 	int state;
 	time_t  rec_start;
-	int fname_idx;
-	char *fname;
+	char fname[PATH_MAX];
 	char *path;
 	char *curr_dir;
 
