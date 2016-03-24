@@ -11,6 +11,10 @@
 #include <unistd.h>
 #include <time.h>
 #include <getopt.h>
+#include <execinfo.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "bcm_host.h"
 
@@ -23,6 +27,23 @@ struct picam_ctx ctx;
 void signal_handler(int signum, siginfo_t *siginfo, void *secret)
 {
 	LOG_INF("Signal caught %d; cleaning up", signum);
+	if (signum == SIGSEGV) {
+		void *array[10];
+		size_t size;
+		char err_filename[64];
+		int fd = 0;
+
+		snprintf(err_filename, 64, "/var/log/picam-crash-%d-%d.log", getpid(), signum);
+
+		fd = open(err_filename, O_WRONLY | O_CREAT, 0644);
+
+		/* dump the backtrace */
+		size = backtrace(array, 10);
+		backtrace_symbols_fd(array, size, fd);
+
+		fsync( fd );
+		close( fd );
+	}
 	cleanup_converter(&ctx.conv);
 }
 
