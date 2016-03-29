@@ -1,6 +1,6 @@
 <?php
 
         header("Content-Type: image/jpeg");
-        readfile("/run/picam.mjpeg");
+        readfile("/run/picam.jpeg");
 ?>
 

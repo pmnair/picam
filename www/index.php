@@ -1,7 +1,9 @@
+<!DOCTYPE html>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title><?php echo TITLE_STRING; ?></title>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8;width=device-width, initial-scale=1"/>
+	<title>PiCam Preview</title>
+	<link type="text/css" href="css/buttons.css" rel="stylesheet" />
 	<script src="js/jquery.min.js"></script>
 	<script type="text/javascript">
 	var mjpeg;
@@ -27,7 +29,16 @@
 <?php
 echo "<body background='' onload=\"mjpeg_start();\">";
 ?>
-<img id="mjpeg_image" style="width:50%" onclick='window.open("index.php","_blank");'>
+	<div>
+		<img id="mjpeg_image" style="width:50%" onclick='window.open("index.php","_blank");'>
+	<section>
+	<div class="buttonHolder">
+		<a href="#" class="button power"></a>
+		<a href="#" class="button tick"></a>
+	</div>
+	</section>
+	</div>
+
 </body>
 </html>
 

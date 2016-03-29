@@ -138,7 +138,7 @@ jpeg_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 	int n;
 
 	if (!ctx->image_fp)
-		ctx->image_fp = fopen("/run/picam.jpeg.new", "w");
+		ctx->image_fp = fopen("/run/picam.jpeg.tmp", "w");
 
 	if (buffer->length)
 	{
@@ -154,7 +154,7 @@ jpeg_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 		fflush(ctx->image_fp);
 		fclose(ctx->image_fp);
 		ctx->image_fp = NULL;
-		rename("/run/picam.jpeg.new", "/run/picam.jpeg");
+		rename("/run/picam.jpeg.tmp", "/run/picam.jpeg");
 	}
 
 	release_mmal_buffer(port, buffer);
