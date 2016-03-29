@@ -8,7 +8,7 @@
 
 	function mjpeg_read()
 	{
-		setTimeout("mjpeg.src = 'mjpeg_read.php?time=' + new Date().getTime();", 150);
+		setTimeout("mjpeg.src = 'mjpeg_read.php?time=' + new Date().getTime();", 200);
 	}
 
 	function mjpeg_start()
