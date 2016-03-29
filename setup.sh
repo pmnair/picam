@@ -45,7 +45,7 @@ setup_smb_share() {
 	grep -q "    path = /media/data" /etc/samba/smb.conf
 	if [ $? -eq 1 ]
 	then
-		systemctl list-unit-files | grep -q smbd.service
+		systemctl list-unit-files | grep -q samba.service
 		if [ $? -eq 0 ]
 		then
 			# add configuration to export /media/data
