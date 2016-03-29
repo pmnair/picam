@@ -11,15 +11,18 @@ FLAGS = -O2 -Wall $(MMAL_INCLUDE) $(INCLUDES)
 LIBS = $(MMAL_LIB) -lm -lpthread
 
 SRCS := main.c camera.c frame_helper.c common.c converter.c
+SRCS_CTL := picam_controller.c
 
 %.o:%.c
 	$(CC) $(CXXFLAGS) $(FLAGS) -c $< -o $@
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
+OBJS_CTL := $(patsubst %.c, %.o, $(SRCS_CTL))
 
-all: $(OBJS)
+all: $(OBJS) $(OBJS_CTL)
 	$(CC) -o picam $(OBJS) $(LIBS)
+	$(CC) -o pictl $(OBJS_CTL) $(LIBS)
 
 clean:
-	rm -f $(OBJS) picam
+	rm -f $(OBJS) $(OBJS_CTL) picam pictl
 

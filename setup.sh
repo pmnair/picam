@@ -34,7 +34,10 @@ setup_autorun() {
 	grep -q "pi/picam/picam-run" /etc/rc.local
 	if [ $? -eq 1 ]
 	then
-		sed -i '/exit 0$/i /home/pi/picam/picam-run > /dev/null &' /etc/rc.local
+		sed -i '/exit 0$/i _PID=$(pgrep pictl) || true' /etc/rc.local
+		sed -i '/exit 0$/i if [ ! "$_PID" ]; then\n    /home/pi/picam/pictl > /dev/null &\nfi' /etc/rc.local
+		sed -i '/exit 0$/i _PID=$(pgrep picam-run) || true' /etc/rc.local
+		sed -i '/exit 0$/i if [ ! "$_PID" ]; then\n    /home/pi/picam/picam-run > /dev/null &\nfi' /etc/rc.local
 	fi
 }
 

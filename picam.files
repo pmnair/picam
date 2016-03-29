@@ -7,3 +7,4 @@ converter.h
 frame_helper.c
 frame_helper.h
 main.c
+picam_controller.c
