@@ -30,10 +30,10 @@ open_next_file(struct picam_ctx *ctx, char *last_fname, int len)
 	}
 
 	/* if we have a file open; close it */
-	if (ctx->fp) {
+	if (ctx->video_fp) {
 		if (last_fname)
 			snprintf(last_fname, len, "%s", ctx->fname);
-		fclose(ctx->fp);
+		fclose(ctx->video_fp);
 	}
 
 	/* open the file with next index */
@@ -41,9 +41,9 @@ open_next_file(struct picam_ctx *ctx, char *last_fname, int len)
 				ctx->curr_dir, pnow->tm_hour,
 				pnow->tm_min, pnow->tm_sec);
 	LOG_INF("Opening file: %s", ctx->fname);
-	ctx->fp = fopen(ctx->fname, "w");
+	ctx->video_fp = fopen(ctx->fname, "w");
 
-	return (ctx->fp == NULL);
+	return (ctx->video_fp == NULL);
 }
 
 void
@@ -76,7 +76,7 @@ h264_write_frames(struct picam_ctx *ctx)
 			ii = ctx->frame_buffers.nalloc-1;
 	}
 	/* write file header */
-	fwrite(ctx->h264_hdr, 1, ctx->h264_hdr_pos, ctx->fp);
+	fwrite(ctx->h264_hdr, 1, ctx->h264_hdr_pos, ctx->video_fp);
 
 	LOG_DBG("Final lft=%lu, kfi=%d", last_frame_tm, key_frame);
 
@@ -85,16 +85,16 @@ h264_write_frames(struct picam_ctx *ctx)
 		if (ii == ctx->frame_buffers.nalloc)
 			ii = 0;
 		frame = ctx->frame_buffers.frames[ii];
-		fwrite(frame->data, 1, frame->len, ctx->fp);
+		fwrite(frame->data, 1, frame->len, ctx->video_fp);
 	}
 
 	frame = ctx->frame_buffers.frames[ctx->frame_buffers.last];
-	fwrite(frame->data, 1, frame->len, ctx->fp);
+	fwrite(frame->data, 1, frame->len, ctx->video_fp);
 }
 
 void
 h264_write_frame(struct picam_ctx *ctx, int frame_idx)
 {
 	struct picam_frame *frame = ctx->frame_buffers.frames[frame_idx];
-	fwrite(frame->data, 1, frame->len, ctx->fp);
+	fwrite(frame->data, 1, frame->len, ctx->video_fp);
 }

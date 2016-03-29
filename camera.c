@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <pthread.h>
+#include <string.h>
+#include <errno.h>
 
 #include "camera.h"
 #include "common.h"
@@ -50,11 +52,27 @@ h264_save_frame(struct picam_ctx *ctx, MMAL_BUFFER_HEADER_T *buffer)
 	return frame_idx;
 }
 
-void
-h264_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
+static void
+release_mmal_buffer(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 {
 	MMAL_BUFFER_HEADER_T *free_buffer;
 	MMAL_STATUS_T ret = MMAL_SUCCESS;
+	struct picam_component *component = (struct picam_component *)port->userdata;
+
+	mmal_buffer_header_release(buffer);
+	if (port->is_enabled)
+	{
+		free_buffer = mmal_queue_get(component->out_pool->queue);
+		if (free_buffer)
+			ret = mmal_port_send_buffer(port, free_buffer);
+		if (!free_buffer || (ret != MMAL_SUCCESS))
+			LOG_ERROR("failed to send buffer to port");
+	}
+}
+
+void
+h264_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
+{
 	struct picam_component *component = (struct picam_component *)port->userdata;
 	struct picam_ctx *ctx = component->ctx;
 	int state;
@@ -109,25 +127,45 @@ h264_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 #endif
 	}
 
-	mmal_buffer_header_release(buffer);
-	if (port->is_enabled)
-	{
-		free_buffer = mmal_queue_get(component->out_pool->queue);
-		if (free_buffer)
-			ret = mmal_port_send_buffer(port, free_buffer);
+	release_mmal_buffer(port, buffer);
+}
 
-		if (!free_buffer || (ret != MMAL_SUCCESS))
-			LOG_ERROR("failed to send buffer to port");
+void
+jpeg_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
+{
+	struct picam_component *component = (struct picam_component *)port->userdata;
+	struct picam_ctx *ctx = component->ctx;
+	int n;
+
+	if (!ctx->image_fp)
+		ctx->image_fp = fopen("/run/picam.jpeg", "w");
+
+	if (buffer->length)
+	{
+		mmal_buffer_header_mem_lock(buffer);
+		n = fwrite(buffer->data, 1, buffer->length, ctx->image_fp);
+		mmal_buffer_header_mem_unlock(buffer);
+		if (n != buffer->length)
+			LOG_ERROR("file write failed '%s'\n", strerror(errno));
 	}
+
+	if (buffer->flags & MMAL_BUFFER_HEADER_FLAG_FRAME_END)
+	{
+		fclose(ctx->image_fp);
+		ctx->image_fp = NULL;
+	}
+
+	release_mmal_buffer(port, buffer);
 }
 
 MMAL_STATUS_T setup_port_format(MMAL_PORT_T *port, int enc, int enc_var, int width, int height, int fps)
 {
 	MMAL_ES_FORMAT_T *fmt = port->format;
 
-	fmt->encoding = enc;
-	fmt->encoding_variant = enc_var;
-	fmt->bitrate = 2000000;
+	if (enc)
+		fmt->encoding = enc;
+	if (enc_var)
+		fmt->encoding_variant = enc_var;
 	fmt->es->video.width = width;
 	fmt->es->video.height = height;
 	fmt->es->video.crop.x = 0;
@@ -136,6 +174,7 @@ MMAL_STATUS_T setup_port_format(MMAL_PORT_T *port, int enc, int enc_var, int wid
 	fmt->es->video.crop.height = height;
 
 	if (fps) {
+		fmt->bitrate = 2000000;
 		fmt->es->video.frame_rate.num = fps;
 		fmt->es->video.frame_rate.den = 1;
 	}
@@ -163,8 +202,15 @@ int start_camera(struct picam_component *cam)
 	MMAL_STATUS_T ret;
 
 	ret = mmal_port_parameter_set_boolean(cam->comp->output[CAMERA_VIDEO_PORT],
-					      MMAL_PARAMETER_CAPTURE,
-					      MMAL_TRUE);
+						MMAL_PARAMETER_CAPTURE,
+						MMAL_TRUE);
+	if (ret != MMAL_SUCCESS)
+		goto out;
+
+	ret = mmal_port_parameter_set_boolean(cam->comp->output[CAMERA_PREVIEW_PORT],
+						MMAL_PARAMETER_CAPTURE,
+						MMAL_TRUE);
+out:
 	return (ret == MMAL_SUCCESS)?0:1;
 }
 
@@ -242,7 +288,7 @@ int create_camera(struct picam_component *cam, int width, int height, int fps)
 
 	/* setup preview port format */
 	ret = setup_port_format(cam->comp->output[CAMERA_PREVIEW_PORT],
-				MMAL_ENCODING_OPAQUE, MMAL_ENCODING_I420, width, height, fps);
+				MMAL_ENCODING_I420, 0, width, height, fps);
 	if (ret != MMAL_SUCCESS) {
 		LOG_ERROR("Failed to setup preview port format!");
 		goto error;
@@ -288,17 +334,17 @@ error:
 	return -1;
 }
 
-int create_encoder(struct picam_component *enc, int fps)
+int create_video_encoder(struct picam_component *enc, int fps)
 {
 	MMAL_STATUS_T ret;
 	MMAL_PORT_T	*in_port, *out_port;
 	int rc = -1;
 
-	/* create camera component */
+	/* create video encoder component */
 	enc->name = "h264-encoder";
 	ret = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_ENCODER, &enc->comp);
 	if (ret != MMAL_SUCCESS) {
-		LOG_ERROR("Failed to create encoder component!");
+		LOG_ERROR("Failed to create video encoder component!");
 		goto out;
 	}
 
@@ -309,7 +355,7 @@ int create_encoder(struct picam_component *enc, int fps)
 			MAX(out_port->buffer_size_recommended,
 			    out_port->buffer_size_min);
 
-	LOG_INF("encoder output port nbuffs=%d, buff_sz=%d",
+	LOG_INF("video encoder output port nbuffs=%d, buff_sz=%d",
 			out_port->buffer_num, out_port->buffer_size);
 	mmal_format_copy(out_port->format, in_port->format);
 	out_port->format->encoding = MMAL_ENCODING_H264;
@@ -327,13 +373,122 @@ int create_encoder(struct picam_component *enc, int fps)
 
 	ret = mmal_port_format_commit(out_port);
 	if (ret != MMAL_SUCCESS) {
-		LOG_ERROR("Failed to commit encoder format!");
+		LOG_ERROR("Failed to commit video encoder format!");
 		goto error;
 	}
 
 	ret = mmal_component_enable(enc->comp);
 	if (ret != MMAL_SUCCESS) {
 		LOG_ERROR("Failed to enable encoder component!");
+		goto error;
+	}
+
+	rc = 0;
+out:
+	return rc;
+
+error:
+	destroy_comp(enc);
+	return -1;
+}
+
+int create_resizer(struct picam_component *resizer, struct picam_component *src)
+{
+	MMAL_STATUS_T ret;
+	MMAL_PORT_T	*in_port, *out_port;
+	MMAL_PORT_T	*src_port = src->comp->output[CAMERA_PREVIEW_PORT];
+	int rc = -1;
+	int w = 320, h=180;
+
+	/* create resizer component */
+	resizer->name = "stream-resizer";
+	ret = mmal_component_create("vc.ril.resize", &resizer->comp);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to create image encoder component!");
+		goto out;
+	}
+
+	in_port = resizer->comp->input[0];
+	out_port = resizer->comp->output[0];
+
+	mmal_format_copy(in_port->format, src_port->format);
+	in_port->buffer_num = out_port->buffer_num = 3;
+
+	ret = mmal_port_format_commit(in_port);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to commit resizer input format!");
+		goto error;
+	}
+
+	mmal_format_copy(out_port->format, in_port->format);
+	ret = setup_port_format(out_port, 0, 0, w, h, 0);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to commit resizer output format!");
+		goto error;
+	}
+
+	ret = mmal_component_enable(resizer->comp);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to enable image encoder component!");
+		goto error;
+	}
+
+	rc = 0;
+out:
+	return rc;
+
+error:
+	destroy_comp(resizer);
+	return -1;
+}
+
+int create_image_encoder(struct picam_component *enc, struct picam_component *src)
+{
+	MMAL_STATUS_T ret;
+	MMAL_PORT_T	*in_port, *out_port;
+	MMAL_PORT_T	*src_port = src->comp->output[0];
+	int rc = -1;
+
+	/* create image encoder component */
+	enc->name = "jpeg-encoder";
+	ret = mmal_component_create(MMAL_COMPONENT_DEFAULT_IMAGE_ENCODER, &enc->comp);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to create image encoder component!");
+		goto out;
+	}
+
+	in_port = enc->comp->input[0];
+	out_port = enc->comp->output[0];
+	mmal_format_copy(in_port->format, src_port->format);
+	in_port->buffer_size = src_port->buffer_size;
+	ret = mmal_port_format_commit(in_port);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to commit image encoder input format!");
+		goto error;
+	}
+
+	out_port->buffer_num = MAX_ENCODER_BUFFERS;
+	out_port->buffer_size =
+			MAX(out_port->buffer_size_recommended,
+			    out_port->buffer_size_min);
+
+	LOG_INF("image encoder output port nbuffs=%d, buff_sz=%d",
+			out_port->buffer_num, out_port->buffer_size);
+	mmal_format_copy(out_port->format, in_port->format);
+	out_port->format->encoding = MMAL_ENCODING_JPEG;
+
+	ret = mmal_port_format_commit(out_port);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to commit image encoder output format!");
+		goto error;
+	}
+
+	mmal_port_parameter_set_uint32(out_port,
+					MMAL_PARAMETER_JPEG_Q_FACTOR, 100);
+
+	ret = mmal_component_enable(enc->comp);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to enable image encoder component!");
 		goto error;
 	}
 

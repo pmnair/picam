@@ -89,8 +89,11 @@ struct picam_ctx {
 	int threshold;
 	
 	struct picam_component camera;
-	struct picam_component encoder;
-	FILE *fp;
+	struct picam_component video_encoder;
+	struct picam_component stream_resizer;
+	struct picam_component image_encoder;
+	FILE *video_fp;
+	FILE *image_fp;
 	int   key_frame_cnt;
 	int   frame_cnt;
 	struct timespec start_tm;

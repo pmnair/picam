@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
+
+WEB_ROOT=$PWD
+WEB_PORT=80
 
 if [ "$(id -u)" != "0" ]; then
 	echo "Please run the script with sudo."
@@ -71,3 +74,14 @@ setup_autorun
 # setup samba share
 echo "[*] Setting up media sharing using smb"
 setup_smb_share
+
+cp etc/nginx-site-default /etc/nginx/sites-available/picam
+sed -i "s|WWW_ROOT|$WEB_ROOT/www|g; s/WWW_PORT/$WEB_PORT/g" /etc/nginx/sites-available/picam
+if [ $WEB_PORT == 80 ]
+then
+	rm /etc/nginx/sites-enabled/default
+	ln -s /etc/nginx/sites-available/picam /etc/nginx/sites-enabled/default
+else
+	ln -s /etc/nginx/sites-available/picam /etc/nginx/sites-enabled/picam
+fi
+

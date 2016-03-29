@@ -98,8 +98,9 @@ int main(int argc, char * const argv[])
 	
 	init_picam_state(&ctx);
 	ctx.path = NULL;
-	ctx.fp = NULL;
-	
+	ctx.video_fp = NULL;
+	ctx.image_fp = NULL;
+
 	while ((c = getopt_long(argc, argv, short_opts, long_opts, NULL)) != -1) {
 		switch( c ) {
 			case 'W':
@@ -147,8 +148,10 @@ int main(int argc, char * const argv[])
 	bcm_host_init();
 
 	ctx.camera.ctx = &ctx;
-	ctx.encoder.ctx = &ctx;
-	
+	ctx.video_encoder.ctx = &ctx;
+	ctx.image_encoder.ctx = &ctx;
+	ctx.stream_resizer.ctx = &ctx;
+
 	sigemptyset(&signal_act.sa_mask);
 	signal_act.sa_flags = SA_ONESHOT;
 	signal_act.sa_sigaction = signal_handler;
@@ -197,22 +200,45 @@ int main(int argc, char * const argv[])
 		goto cleanup;
 	}
 	
-	/* create encoder component */
-	rc = create_encoder(&ctx.encoder, ctx.fps);
+	/* create video encoder component */
+	rc = create_video_encoder(&ctx.video_encoder, ctx.fps);
 	if (rc) {
-		LOG_ERROR("Failed to create encoder component!");
-		goto cleanup;
+		LOG_ERROR("Failed to create video encoder component!");
+		goto cleanup_cam;
 	}
-	
+
+	/* create resizer component */
+	rc = create_resizer(&ctx.stream_resizer, &ctx.camera);
+	if (rc) {
+		LOG_ERROR("Failed to create resizer component!");
+		goto cleanup_ve;
+	}
+
+	/* create image encoder component */
+	rc = create_image_encoder(&ctx.image_encoder, &ctx.stream_resizer);
+	if (rc) {
+		LOG_ERROR("Failed to create image encoder component!");
+		goto cleanup_sr;
+	}
+
 	/* open file to record in */
 	open_next_file(&ctx, NULL, 0);
 	
-	/* connect video output port of camera to input of encoder */
-	connect_components(&ctx.camera, CAMERA_VIDEO_PORT, &ctx.encoder);
-	
-	/* setup callback for encoder output */
-	connect_output_callback(&ctx.encoder, 0, h264_encoder_cb);
-	
+	/* connect video output port of camera to input of video encoder */
+	/* camera_video--(tunnel)-->h264 encoder-->video_h264_encoder_callback */
+	connect_components(&ctx.camera, CAMERA_VIDEO_PORT, &ctx.video_encoder);
+
+	/* connect image output port of camera to input of jpeg encoder */
+	/* preview --(tunnel)--> resizer --> I420_callback --> jpeg_encoder --> mjpeg_callback */
+	connect_components(&ctx.camera, CAMERA_PREVIEW_PORT, &ctx.stream_resizer);
+	connect_components(&ctx.stream_resizer, 0, &ctx.image_encoder);
+
+	/* setup callback for video encoder output */
+	connect_output_callback(&ctx.video_encoder, 0, h264_encoder_cb);
+
+	/* setup callback for image encoder output */
+	connect_output_callback(&ctx.image_encoder, 0, jpeg_encoder_cb);
+
 	/* start recording */
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ctx.start_tm);
 	ctx.startup_time = time(NULL);
@@ -221,11 +247,16 @@ int main(int argc, char * const argv[])
 	/* run the capture converter loop */
 	run_capture_converter(&ctx);
 	
-cleanup:
-	destroy_comp(&ctx.encoder);
+	destroy_comp(&ctx.image_encoder);
+cleanup_sr:
+	destroy_comp(&ctx.stream_resizer);
+cleanup_ve:
+	destroy_comp(&ctx.video_encoder);
+cleanup_cam:
 	destroy_comp(&ctx.camera);
+cleanup:
 	clock_gettime(CLOCK_MONOTONIC_RAW, &end_tm);
-	fclose(ctx.fp);
+	fclose(ctx.video_fp);
 	LOG_INF("Key Frame Count=%d, Frame Count=%d, nsec=%lu",
 		ctx.key_frame_cnt, ctx.frame_cnt,
 		end_tm.tv_sec - ctx.start_tm.tv_sec);
