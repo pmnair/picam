@@ -19,7 +19,7 @@ body{
 }
 
 .buttonHolder{
-  margin:80px auto;
+  margin:40px 80px;
   width:400px;
 }
 
@@ -57,6 +57,18 @@ body{
 			top:23px;
 		}
 
+		.stop:after{
+			content: "\F04D";
+			left:23px;
+			top:23px;
+		}
+
+		.start:after{
+			content: "\F04B";
+			left:27px;
+			top:23px;
+		}
+
 		.tick:after{
 			content: "✔";
 			left:23px;
@@ -76,6 +88,16 @@ body{
 		}
 
 		.power:hover:after{
+			color:#eb2f2f;
+			text-shadow:0px 0px 6px #eb2f2f;
+		}
+
+		.stop:hover:after{
+			color:#eb2f2f;
+			text-shadow:0px 0px 6px #eb2f2f;
+		}
+
+		.start:hover:after{
 			color:#eb2f2f;
 			text-shadow:0px 0px 6px #eb2f2f;
 		}

@@ -50,6 +50,14 @@
 			command("stop");
 		}
 	}
+	function start()
+	{
+		var res = confirm("Start picam?");
+		if (res) {
+			command("start");
+		}
+	}
+
 	</script>
 	<style>
 		*{margin:0;padding:0;}
@@ -64,7 +72,10 @@ echo "<body background='' onload=\"mjpeg_start();\">";
 	<section>
 	<div class="buttonHolder">
 		<a href="#" class="button power" onClick=shutdown()></a>
+<!--
 		<a href="#" class="button tick" onClick=command("capture")></a>
+		<a href="#" class="button start" onClick=command("start")></a>
+-->
 		<a href="#" class="button start" onClick=command("start")></a>
 		<a href="#" class="button stop" onClick=stop()></a>
 	</div>
