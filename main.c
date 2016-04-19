@@ -47,11 +47,12 @@ void signal_handler(int signum, siginfo_t *siginfo, void *secret)
 	cleanup_converter(&ctx.conv);
 }
 
-static char short_opts[] = "W:H:F:L:P:D:S:T:f:p:n:h";
+static char short_opts[] = "W:H:F:R:L:P:D:S:T:f:p:n:h";
 static const struct option long_opts[] = {
 	{ "width",       1, 0, 'W' },
 	{ "height",      1, 0, 'H' },
 	{ "fps",         1, 0, 'F' },
+	{ "rot",         1, 0, 'R' },
 	{ "length",      1, 0, 'L' },
 	{ "pre",         1, 0, 'P' },
 	{ "delay",       1, 0, 'D' },
@@ -71,6 +72,7 @@ static char *usage_txt =
 "[OPTIONS]\n"
 "-W|--width <value>       : resolution width\n"
 "-H|--height <value>      : resolution height\n"
+"-R|--rot <value>         : rotation, valid values are 90, 180, 270\n"
 "-F|--fps <value>         : frames per second\n"
 "-L|--length <value>      : length of each capture in seconds; default is 15 seconds\n"
 "-P|--pre <value>         : length of pre-capture in seconds; default is 5 seconds\n"
@@ -90,6 +92,7 @@ int main(int argc, char * const argv[])
 	ctx.width = 1280;
 	ctx.height = 720;
 	ctx.fps = 30;
+	ctx.rot = 0;
 	ctx.nsec_pre_cap = 5;
 	ctx.nsec_cap_len = 15;
 	ctx.sensitivity = 50;
@@ -111,6 +114,19 @@ int main(int argc, char * const argv[])
 				break;
 			case 'F':
 				ctx.fps = atoi(optarg);
+				break;
+			case 'R':
+				ctx.rot = atoi(optarg);
+				switch(ctx.rot)
+				{
+				case 90:
+				case 180:
+				case 270:
+					break;
+				default:
+					ctx.rot = 0;
+				}
+
 				break;
 			case 'L':
 				ctx.nsec_cap_len = atoi(optarg);
@@ -194,7 +210,7 @@ int main(int argc, char * const argv[])
 	}
 
 	/* create camera component */
-	rc = create_camera(&ctx.camera, ctx.width, ctx.height, ctx.fps);
+	rc = create_camera(&ctx.camera, ctx.width, ctx.height, ctx.fps, ctx.rot);
 	if (rc) {
 		LOG_ERROR("Failed to create camera component!");
 		goto cleanup;

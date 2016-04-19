@@ -83,6 +83,7 @@ struct picam_ctx {
 	int width;
 	int height;
 	int fps;
+	int rot;
 	int nsec_pre_cap;
 	int nsec_cap_len;
 	int sensitivity;

@@ -20,7 +20,7 @@ void destroy_comp(struct picam_component *component);
 int start_camera(struct picam_component *cam);
 int allocate_frame_buffers(struct picam_ctx *ctx);
 void free_frame_buffers(struct picam_ctx *ctx);
-int create_camera(struct picam_component *cam, int width, int height, int fps);
+int create_camera(struct picam_component *cam, int width, int height, int fps, int rot);
 int create_video_encoder(struct picam_component *enc, int fps);
 int create_resizer(struct picam_component *resizer, struct picam_component *src);
 int create_image_encoder(struct picam_component *enc, struct picam_component *src);

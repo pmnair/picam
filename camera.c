@@ -252,7 +252,7 @@ void free_frame_buffers(struct picam_ctx *ctx)
 		free(ctx->frame_buffers.frames);
 }
 
-int create_camera(struct picam_component *cam, int width, int height, int fps)
+int create_camera(struct picam_component *cam, int width, int height, int fps, int rot)
 {
 	MMAL_STATUS_T ret;
 	MMAL_PARAMETER_CAMERA_CONFIG_T cam_config = {
@@ -320,6 +320,13 @@ int create_camera(struct picam_component *cam, int width, int height, int fps)
 	LOG_INF("camera still port nbuffs=%d, buff_sz=%d",
 				cam->comp->output[CAMERA_STILL_PORT]->buffer_num,
 				cam->comp->output[CAMERA_STILL_PORT]->buffer_size);
+
+	/* setup rotation if required */
+	if (rot) {
+		mmal_port_parameter_set_int32(cam->comp->output[CAMERA_PREVIEW_PORT], MMAL_PARAMETER_ROTATION, rot);
+		mmal_port_parameter_set_int32(cam->comp->output[CAMERA_VIDEO_PORT], MMAL_PARAMETER_ROTATION, rot);
+		mmal_port_parameter_set_int32(cam->comp->output[CAMERA_STILL_PORT], MMAL_PARAMETER_ROTATION, rot);
+	}
 
 	ret = mmal_component_enable(cam->comp);
 	if (ret != MMAL_SUCCESS) {
