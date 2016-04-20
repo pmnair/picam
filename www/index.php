@@ -67,22 +67,16 @@
 <?php
 echo "<body background='' onload=\"mjpeg_start();\">";
 ?>
-	<div>
-		<img id="mjpeg_image" style="width:50%" onclick='window.open("index.php","_blank");'>
-	<section>
-	<div class="buttonHolder">
+<div style="margin:5% 5%; overflow:hidden;">
+	<div style="width: 80%; float: left;">
+	<img id="mjpeg_image" style="width: 100%" onclick='window.open("index.php","_blank");'>
+	</div>
+	<div class="buttonHolder" style="float: right;">
 		<a href="#" class="button power" onClick=shutdown()></a>
-<!--
-		<a href="#" class="button tick" onClick=command("capture")></a>
-		<a href="#" class="button start" onClick=command("start")></a>
--->
 		<a href="#" class="button start" onClick=command("start")></a>
 		<a href="#" class="button stop" onClick=stop()></a>
 	</div>
-	</div>
-	</section>
-	</div>
-
+</div>
 </body>
 </html>
 
