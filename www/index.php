@@ -69,7 +69,7 @@ echo "<body background='' onload=\"mjpeg_start();\">";
 ?>
 <div style="margin:5% 5%; overflow:hidden;">
 	<div style="width: 85%; float: left;">
-	<img id="mjpeg_image" style="width: 100%" onclick='window.open("index.php","_blank");'>
+		<img id="mjpeg_image" style="width: 100%" onclick='window.open("index.php","_blank");'>
 	</div>
 	<div class="buttonHolder" style="float: right;">
 		<a href="#" class="button power" onClick=shutdown()></a>
