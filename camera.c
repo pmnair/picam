@@ -16,6 +16,48 @@
 
 #define _WRITE_FILE_ 0
 
+#if 0
+static void
+annotate_text(struct picam_component *camera)
+{
+	MMAL_PARAMETER_CAMERA_ANNOTATE_V2_T	mmal_annotate =
+			{{
+			MMAL_PARAMETER_ANNOTATE,
+			sizeof(MMAL_PARAMETER_CAMERA_ANNOTATE_V2_T)
+			}};
+	static time_t   t_last, t_now;
+
+	t_now = time(NULL);
+	if (t_now < (t_last+30))
+		return;
+
+	snprintf(mmal_annotate.text, sizeof(mmal_annotate.text), "Hello World!!");
+	mmal_annotate.enable = MMAL_TRUE;
+
+	mmal_annotate.show_shutter          = MMAL_FALSE;
+	mmal_annotate.show_analog_gain      = MMAL_FALSE;
+	mmal_annotate.show_lens             = MMAL_FALSE;
+	mmal_annotate.show_caf              = MMAL_FALSE;
+	mmal_annotate.show_motion           = MMAL_FALSE;
+	mmal_annotate.show_frame_num        = MMAL_FALSE;
+/*
+	mmal_annotate.custom_text_colour = MMAL_TRUE;
+	mmal_annotate.custom_text_Y = 0xFF;
+	mmal_annotate.custom_text_U = 0x80;
+	mmal_annotate.custom_text_V = 0x80;
+
+	mmal_annotate.enable_text_background = MMAL_FALSE;
+	mmal_annotate.custom_background_colour = MMAL_FALSE;
+*/
+	mmal_annotate.black_text_background = MMAL_TRUE;
+//	mmal_annotate.text_size = 20;
+
+	if (mmal_port_parameter_set(camera->comp->control, &mmal_annotate.hdr)
+			!= MMAL_SUCCESS)
+		printf("Could not set annotation");
+}
+#endif
+
 static void
 camera_control_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 {
@@ -128,6 +170,9 @@ h264_encoder_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 	}
 
 	release_mmal_buffer(port, buffer);
+#if 0
+	annotate_text(&ctx->camera);
+#endif
 }
 
 void
@@ -252,7 +297,7 @@ void free_frame_buffers(struct picam_ctx *ctx)
 		free(ctx->frame_buffers.frames);
 }
 
-int create_camera(struct picam_component *cam, int width, int height, int fps, int rot)
+int create_camera(struct picam_component *cam, int width, int height, int fps, int rot, int sharp)
 {
 	MMAL_STATUS_T ret;
 	MMAL_PARAMETER_CAMERA_CONFIG_T cam_config = {
@@ -268,6 +313,7 @@ int create_camera(struct picam_component *cam, int width, int height, int fps, i
 		.fast_preview_resume = 0,
 		.use_stc_timestamp = MMAL_PARAM_TIMESTAMP_MODE_RESET_STC
 	};
+	MMAL_RATIONAL_T sharpness = {sharp, 100};
 	int rc = -1;
 
 	/* create camera component */
@@ -287,6 +333,12 @@ int create_camera(struct picam_component *cam, int width, int height, int fps, i
 
 	/* configure camera */
 	mmal_port_parameter_set(cam->comp->control, &cam_config.hdr);
+	LOG_INF("Setting camera sharpness to %d", sharp);
+	ret = mmal_port_parameter_set_rational(cam->comp->control, MMAL_PARAMETER_SHARPNESS, sharpness);
+	if (ret != MMAL_SUCCESS) {
+		LOG_ERROR("Failed to setup camera sharpness");
+		goto error;
+	}
 
 	/* setup preview port format */
 	ret = setup_port_format(cam->comp->output[CAMERA_PREVIEW_PORT],

@@ -47,12 +47,13 @@ void signal_handler(int signum, siginfo_t *siginfo, void *secret)
 	cleanup_converter(&ctx.conv);
 }
 
-static char short_opts[] = "W:H:F:R:L:P:D:S:T:f:p:n:h";
+static char short_opts[] = "W:H:F:R:L:P:D:S:T:f:p:n:s:h";
 static const struct option long_opts[] = {
 	{ "width",       1, 0, 'W' },
 	{ "height",      1, 0, 'H' },
 	{ "fps",         1, 0, 'F' },
 	{ "rot",         1, 0, 'R' },
+	{ "sharpness",   1, 0, 's' },
 	{ "length",      1, 0, 'L' },
 	{ "pre",         1, 0, 'P' },
 	{ "delay",       1, 0, 'D' },
@@ -79,6 +80,7 @@ static char *usage_txt =
 "-D|--delay <value>       : startup delay in seconds; default is 5\n"
 "-S|--sensitivity <value> : sensitivity of motion detection; default is 50\n"
 "-T|--threshold <value>   : threshold for motion detection; default is 10\n"
+"-s|--sharpness <value>   : sharpness value between -100 to 100; default is 0\n"
 "-h|--help                : print this help\n\n";
 
 int main(int argc, char * const argv[])
@@ -93,6 +95,7 @@ int main(int argc, char * const argv[])
 	ctx.height = 720;
 	ctx.fps = 30;
 	ctx.rot = 0;
+	ctx.sharp = 0;
 	ctx.nsec_pre_cap = 5;
 	ctx.nsec_cap_len = 15;
 	ctx.sensitivity = 50;
@@ -106,51 +109,56 @@ int main(int argc, char * const argv[])
 
 	while ((c = getopt_long(argc, argv, short_opts, long_opts, NULL)) != -1) {
 		switch( c ) {
-			case 'W':
-				ctx.width = atoi(optarg);
+		case 'W':
+			ctx.width = atoi(optarg);
+			break;
+		case 'H':
+			ctx.height = atoi(optarg);
+			break;
+		case 'F':
+			ctx.fps = atoi(optarg);
+			break;
+		case 'R':
+			ctx.rot = atoi(optarg);
+			switch(ctx.rot)
+			{
+			case 90:
+			case 180:
+			case 270:
 				break;
-			case 'H':
-				ctx.height = atoi(optarg);
-				break;
-			case 'F':
-				ctx.fps = atoi(optarg);
-				break;
-			case 'R':
-				ctx.rot = atoi(optarg);
-				switch(ctx.rot)
-				{
-				case 90:
-				case 180:
-				case 270:
-					break;
-				default:
-					ctx.rot = 0;
-				}
-
-				break;
-			case 'L':
-				ctx.nsec_cap_len = atoi(optarg);
-				break;
-			case 'P':
-				ctx.nsec_pre_cap = atoi(optarg);
-				break;
-			case 'D':
-				ctx.motion_check_delay = atoi(optarg);
-				break;
-			case 'S':
-				ctx.sensitivity = atoi(optarg);
-				break;
-			case 'T':
-				ctx.threshold = atoi(optarg);
-				break;
-			case 'p':
-				ctx.path = strdup(optarg);
-				break;
-			case '?':
 			default:
-				fprintf(stderr, "unknown option\n");
-				fprintf(stderr, "%s", usage_txt);
-				exit(1);
+				ctx.rot = 0;
+			}
+
+			break;
+		case 's':
+			ctx.sharp = atoi(optarg);
+			if ((ctx.sharp < -100) || (ctx.sharp > 100))
+				ctx.sharp = 0;
+			break;
+		case 'L':
+			ctx.nsec_cap_len = atoi(optarg);
+			break;
+		case 'P':
+			ctx.nsec_pre_cap = atoi(optarg);
+			break;
+		case 'D':
+			ctx.motion_check_delay = atoi(optarg);
+			break;
+		case 'S':
+			ctx.sensitivity = atoi(optarg);
+			break;
+		case 'T':
+			ctx.threshold = atoi(optarg);
+			break;
+		case 'p':
+			ctx.path = strdup(optarg);
+			break;
+		case '?':
+		default:
+			fprintf(stderr, "unknown option\n");
+			fprintf(stderr, "%s", usage_txt);
+			exit(1);
 		}
 	}
 
@@ -210,7 +218,7 @@ int main(int argc, char * const argv[])
 	}
 
 	/* create camera component */
-	rc = create_camera(&ctx.camera, ctx.width, ctx.height, ctx.fps, ctx.rot);
+	rc = create_camera(&ctx.camera, ctx.width, ctx.height, ctx.fps, ctx.rot, ctx.sharp);
 	if (rc) {
 		LOG_ERROR("Failed to create camera component!");
 		goto cleanup;
