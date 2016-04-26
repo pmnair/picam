@@ -3,5 +3,5 @@
 while [ 1 ]
 do
 	ipcrm --queue-key 0xaabbccdd && ipcrm --queue-key 0xaabbccaa
-	/home/pi/picam/picam -p /media/data -L 30
+	/home/pi/picam/picam -p /media/data -L 50 -R 90 -s 50
 done

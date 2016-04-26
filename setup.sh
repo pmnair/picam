@@ -14,13 +14,13 @@ setup_storage_mount() {
 	mkdir -p /media/data
 	if [ ! -z $media_drv ]
 	then
-		media_uuid_str=`blkid $media_drv | awk '{print $3}'`
+		media_uuid_str=`blkid $media_drv | awk '{print $2}'`
 		echo $media_uuid_str
 
 		grep -q "/media/data" /etc/fstab
 		if [ $? -eq 1 ]
 		then
-			echo "$media_uuid_str	/media/data	vfat	default	0	2" >> /etc/fstab
+			echo "$media_uuid_str	/media/data	vfat	defaults	0	2" >> /etc/fstab
 			mount -a
 		else
 			echo "[!] /etc/fstab contains  an old entry for /media/data; please"
