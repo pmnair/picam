@@ -459,7 +459,7 @@ int create_resizer(struct picam_component *resizer, struct picam_component *src)
 	MMAL_PORT_T	*in_port, *out_port;
 	MMAL_PORT_T	*src_port = src->comp->output[CAMERA_PREVIEW_PORT];
 	int rc = -1;
-	int w = 320, h=180;
+	int w = 1024, h=768;
 
 	/* create resizer component */
 	resizer->name = "stream-resizer";
